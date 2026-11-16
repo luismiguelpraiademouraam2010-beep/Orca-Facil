@@ -1,2 +1,2 @@
 # OrçaFácil
-Sistema acadêmico para organizar clientes, serviços e orçamentos.
+Sistema para organizar clientes, serviços e orçamentos.
