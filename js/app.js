@@ -1,4 +1,3 @@
-
 const $ = (s,root=document)=>root.querySelector(s);
 const $$ = (s,root=document)=>[...root.querySelectorAll(s)];
 const money = n => Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -86,8 +85,39 @@ function authRender(type){
  let title=isLogin?'Bem-vindo de volta':isRegister?'Crie sua conta':'Redefinir senha';
  let sub=isLogin?'Entre para continuar gerenciando seu negócio.':isRegister?'Comece a organizar sua empresa gratuitamente.':'Informe seu e-mail para receber as instruções.';
  let fields=isRegister?field('Seu nome','nome','Nome completo')+field('Nome da empresa','empresa','Sua empresa')+field('E-mail','email','voce@email.com','email')+field('Senha','senha','Crie uma senha','password'):field('E-mail','email','voce@email.com','email')+(isLogin?field('Senha','senha','Sua senha','password'):'');
- $('#app').innerHTML=`<div class="auth-page"><section class="auth-art"><div class="auth-logo">◈ OrçaFácil</div><div><div class="eyebrow" style="color:#cfe2ff">GESTÃO INTELIGENTE</div><h1>Seu negócio organizado. Suas ideias em movimento.</h1><p>Uma maneira mais simples e profissional de gerenciar clientes, serviços e orçamentos.</p></div><small>© 2026 OrçaFácil · Gestão que simplifica.</small></section><section class="auth-content"><div class="auth-box"><div class="eyebrow">ORÇAFÁCIL</div><h2>${title}</h2><p>${sub}</p><form id="authForm">${fields}<button class="btn btn-primary" type="submit">${isLogin?'Entrar':isRegister?'Criar minha conta':'Enviar instruções'} →</button></form><div class="notice">Versão de interface: autenticação real será implementada no backend Python/Flask.</div><p style="margin-top:22px;text-align:center">${isLogin?`Ainda não tem conta? <a class="auth-link" href="cadastro.html">Cadastre-se</a><br><br><a class="auth-link" href="recuperar-senha.html">Esqueci minha senha</a>`:isRegister?`Já tem uma conta? <a class="auth-link" href="login.html">Entrar</a>`:`<a class="auth-link" href="login.html">Voltar para o login</a>`}</p></div></section></div>`;
- $('#authForm').onsubmit=e=>{e.preventDefault();showToast(isLogin?'Tela pronta para integração com autenticação.':isRegister?'Cadastro visual validado.':'Instruções serão enviadas pelo backend.');if(isLogin)location.href='dashboard.html'};
+ $('#app').innerHTML=`<div class="auth-page"><section class="auth-art"><div class="auth-logo">◈ OrçaFácil</div><div><div class="eyebrow" style="color:#cfe2ff">GESTÃO INTELIGENTE</div><h1>Seu negócio organizado. Suas ideias em movimento.</h1><p>Uma maneira mais simples e profissional de gerenciar clientes, serviços e orçamentos.</p></div><small>© 2026 OrçaFácil · Gestão que simplifica.</small></section><section class="auth-content"><div class="auth-box"><div class="eyebrow">ORÇAFÁCIL</div><h2>${title}</h2><p>${sub}</p><form id="authForm">${fields}<button class="btn btn-primary" type="submit">${isLogin?'Entrar':isRegister?'Criar minha conta':'Enviar instruções'} →</button></form><div class="notice">Versão de interface: autenticação real será implementada no backend Python/Flask.</div><p style="margin-top:22px;text-align:center">${isLogin?`Ainda não tem conta? <a class="auth-link" href="index.html">Cadastre-se</a><br><br><a class="auth-link" href="recuperar-senha.html">Esqueci minha senha</a>`:isRegister?`Já tem uma conta? <a class="auth-link" href="login.html">Entrar</a>`:`<a class="auth-link" href="login.html">Voltar para o login</a>`}</p></div></section></div>`;
+ $('#authForm').onsubmit=e=>{
+  e.preventDefault();
+  const formData=new FormData(e.currentTarget);
+  const email=String(formData.get('email')||'').trim().toLowerCase();
+  const senha=String(formData.get('senha')||'');
+
+  if(isRegister){
+   const nome=String(formData.get('nome')||'').trim();
+   const empresa=String(formData.get('empresa')||'').trim();
+   if(!nome||!empresa||!email||!senha){showToast('Preencha todos os campos.');return}
+   if(senha.length<6){showToast('A senha precisa ter pelo menos 6 caracteres.');return}
+   const users=get('users',[]);
+   if(users.some(user=>user.email===email)){showToast('Este e-mail já possui cadastro.');return}
+   users.push({id:Date.now(),nome,empresa,email,senha});
+   save('users',users);
+   localStorage.setItem('of_current_user',email);
+   showToast('Conta criada com sucesso!');
+   setTimeout(()=>location.href='dashboard.html',700);
+   return;
+  }
+
+  if(isLogin){
+   const user=get('users',[]).find(user=>user.email===email&&user.senha===senha);
+   if(!user){showToast('E-mail ou senha incorretos.');return}
+   localStorage.setItem('of_current_user',user.email);
+   showToast('Login realizado com sucesso!');
+   setTimeout(()=>location.href='dashboard.html',500);
+   return;
+  }
+
+  showToast('A recuperação de senha será disponibilizada com o backend.');
+ };
 }
 document.addEventListener('DOMContentLoaded',()=>{
  seed();
